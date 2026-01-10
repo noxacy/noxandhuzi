@@ -139,17 +139,39 @@ class Enemy:
             self.nt = False
             self.process = 0
             self.hidden = full.get("hidden", False)
+            
+            # --- NEW: Spawning Attributes ---
+            self.attributes = full.get("attributes", {})
+            self.spawn_timer = 0
+            # If the enemy has a repeating spawn (like Witch)
+            if "spawn" in self.attributes:
+                self.spawn_timer = self.attributes["spawn"]["cooldown"]
         else:
             raise ValueError(f"\"{enemy}\" enemy is not in enemy templates.")
 
     def step(self, dt):
+        # --- NEW: Witch Spawning Logic ---
+        if "spawn" in self.attributes:
+            self.spawn_timer -= dt
+            if self.spawn_timer <= 0:
+                spawn_data = self.attributes["spawn"]
+                for _ in range(spawn_data["quantity"]):
+                    new_enemy = Enemy(spawn_data["name"])
+                    # Sync the new enemy's position to the parent's position
+                    new_enemy.x, new_enemy.y = self.x, self.y
+                    new_enemy.idx = self.idx
+                    new_enemy.process = self.process
+                    enemies.append(new_enemy)
+                self.spawn_timer = spawn_data["cooldown"]
+
         if self.nt:
             self.idx += 1
             self.nt = False
         if self.idx + 1 > len(game.map):
-            enemies.remove(self)
+            if self in enemies: enemies.remove(self) # Safety check
             base.decrease_hp(self.hp)
             return
+        
         goalx, goaly = game.map[self.idx]
         dx, dy = goalx - self.x, goaly - self.y
         distance = (dx**2 + dy**2)**0.5
@@ -173,9 +195,21 @@ class Enemy:
             namount = self.hp
         self.hp -= namount
         game.inc_money(namount)
+        
         if self.hp <= 0:
-            enemies.remove(self)
-
+            # --- NEW: Myth Death-Spawn Logic ---
+            if "death_spawn" in self.attributes:
+                spawn_list = self.attributes["death_spawn"]
+                for e_name in spawn_list:
+                    new_enemy = Enemy(e_name)
+                    # Put them exactly where the Myth died
+                    new_enemy.x, new_enemy.y = self.x, self.y
+                    new_enemy.idx = self.idx
+                    new_enemy.process = self.process
+                    enemies.append(new_enemy)
+            
+            if self in enemies:
+                enemies.remove(self)
 phtower = 0
 placing_tower = False
 

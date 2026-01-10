@@ -33,14 +33,14 @@
                     "range": 500,
                     "name": "X-Ray vision",
                     "desc": "Hidden detection",
-                    "price": 600
+                    "price": 1100
                 }
             ]
         },
         "Commando":
         {
             "damage": 1,
-            "firerate": 0.125,
+            "firerate": 0.2,
             "range": 500,
             "color": "#ab2929",
             "cost": 3500,
@@ -61,7 +61,7 @@
                 },
                 {
                     "detection": true,
-                    "firerate": 0.05,
+                    "firerate": 0.08,
                     "name": "Both hands",
                     "desc": "Faster shooting speed",
                     "price": 11500
@@ -98,10 +98,16 @@
                     "price": 1500
                 },
                 {
+                    "name": "Aimtest",
+                    "desc": "Faster shooting speed",
+                    "firerate": 3,
+                    "price": 3000
+                },
+                {
                     "name": "Deadly death machine",
                     "desc": "Increases damage heavily",
-                    "damage": 35,
-                    "price": 6000
+                    "damage": 40,
+                    "price": 7000
                 }
             ]
         },
@@ -111,7 +117,7 @@
             "firerate": 0.5,
             "range": 100,
             "color": "#001996",
-            "cost": 350,
+            "cost": 500,
             "upgrades":
             [
                 {
@@ -122,7 +128,7 @@
                 },
                 {
                     "name": "Quick hands",
-                    "firerate": 0.25,
+                    "firerate": 0.33,
                     "desc": "Faster hitting speed",
                     "price": 750
                 },
@@ -134,9 +140,9 @@
                 },
                 {
                     "name": "250 Backflip",
-                    "firerate": 0.2,
-                    "desc": "Increasesirerate",
-                    "price": 4500
+                    "firerate": 0.25,
+                    "desc": "Increases firerate",
+                    "price": 5500
                 }
             ]
         },
@@ -144,7 +150,7 @@
         {
             "damage": 1,
             "range": 600,
-            "firerate": 0.3,
+            "firerate": 0.33,
             "color": "#ad37b8",
             "cost": 1500,
             "upgrades":
@@ -166,9 +172,9 @@
                     "name": "Super-Soilder",
                     "desc": "All stats upgraded heavily",
                     "price": 7000,
-                    "damage": 5,
+                    "damage": 4,
                     "range": 900,
-                    "firerate": 0.25
+                    "firerate": 0.28
                 }
             ]
         }
