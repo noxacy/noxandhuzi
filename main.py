@@ -2,6 +2,7 @@ import pygame
 import json
 import os
 import asyncio
+import random
 
 pygame.init()
 Info = pygame.display.Info()
@@ -143,6 +144,8 @@ class Enemy:
             # --- NEW: Spawning Attributes ---
             self.attributes = full.get("attributes", {})
             self.spawn_timer = 0
+            self.spawn_queue = 0  # Number of enemies waiting to be "born"
+            self.spawn_delay_timer = 0
             # If the enemy has a repeating spawn (like Witch)
             if "spawn" in self.attributes:
                 self.spawn_timer = self.attributes["spawn"]["cooldown"]
@@ -150,19 +153,30 @@ class Enemy:
             raise ValueError(f"\"{enemy}\" enemy is not in enemy templates.")
 
     def step(self, dt):
-        # --- NEW: Witch Spawning Logic ---
+        # --- Witch Spawning Logic ---
         if "spawn" in self.attributes:
+            spawn_data = self.attributes["spawn"]
+            
+            # 1. Handle the long cooldown between batches
             self.spawn_timer -= dt
             if self.spawn_timer <= 0:
-                spawn_data = self.attributes["spawn"]
-                for _ in range(spawn_data["quantity"]):
+                self.spawn_queue = spawn_data["quantity"]
+                self.spawn_timer = spawn_data["cooldown"]
+
+            # 2. Handle spawning the individual units from the queue
+            if self.spawn_queue > 0:
+                self.spawn_delay_timer -= dt
+                if self.spawn_delay_timer <= 0:
+                    # Actually spawn the unit
                     new_enemy = Enemy(spawn_data["name"])
-                    # Sync the new enemy's position to the parent's position
                     new_enemy.x, new_enemy.y = self.x, self.y
                     new_enemy.idx = self.idx
                     new_enemy.process = self.process
                     enemies.append(new_enemy)
-                self.spawn_timer = spawn_data["cooldown"]
+                    
+                    # Reduce queue and reset the small delay (spawnrate)
+                    self.spawn_queue -= 1
+                    self.spawn_delay_timer = spawn_data["spawnrate"]
 
         if self.nt:
             self.idx += 1
@@ -197,17 +211,21 @@ class Enemy:
         game.inc_money(namount)
         
         if self.hp <= 0:
-            # --- NEW: Myth Death-Spawn Logic ---
+            # --- Random Death Spawn Logic ---
             if "death_spawn" in self.attributes:
                 spawn_list = self.attributes["death_spawn"]
-                for e_name in spawn_list:
-                    new_enemy = Enemy(e_name)
-                    # Put them exactly where the Myth died
-                    new_enemy.x, new_enemy.y = self.x, self.y
-                    new_enemy.idx = self.idx
-                    new_enemy.process = self.process
-                    enemies.append(new_enemy)
+                # Pick ONE random name from the list in your JSON
+                random_enemy_name = random.choice(spawn_list)
+                
+                new_enemy = Enemy(random_enemy_name)
+                # Sync position and progress so they don't restart the map
+                new_enemy.x, new_enemy.y = self.x, self.y
+                new_enemy.idx = self.idx
+                new_enemy.process = self.process
+                enemies.append(new_enemy)
             
+            # Use a try/except or safety check to prevent crash if 
+            # multiple towers kill the same enemy in 1 frame
             if self in enemies:
                 enemies.remove(self)
 phtower = 0
