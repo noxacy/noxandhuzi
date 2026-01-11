@@ -542,7 +542,7 @@ def draw(dt):
                     game.cached_draw(w, font2, "MAX LEVEL", "#ffffff", (mx, my), True)
                 game.cached_draw(w, font1, f"{t.name}", "#ffffff", (mx, my-H/30), True)
     game.cached_draw(w, font1, f"{game.money}$", "#00ff00", (W/2, 50), True)
-    game.cached_draw(w, font1, f"Wave {game.wave - 1}", "#00ff00", (W/4*3, 50), True)
+    game.cached_draw(w, font1, f"Wave {game.wave}", "#00ff00", (W/4*3, 50), True)
     game.cached_draw(w, font1, f"{base.hp} / {base.maxhp}", "#00ff00", (W/4, 50), True)
     pygame.display.flip()
 
@@ -557,5 +557,3 @@ async def main():
 
 asyncio.run(main())
 pygame.quit()
-
-#a
