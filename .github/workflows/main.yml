@@ -26,39 +26,30 @@ jobs:
       - name: Build and Organize All Games
         run: |
           mkdir -p deploy
-          cp index.html deploy/
-          cp ads.txt deploy/
-          cp privacy.html deploy/
-          cp terms.html deploy/
-          cp about.html deploy/
-          cp contact.html deploy/
+          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/
           
-          # 2. Copy the main menu
-          cp index.html deploy/
-
-          # 3. Loop through every directory in the repo
           for dir in */; do
-            # Remove trailing slash for the folder name
             dirname=${dir%/}
             
-            # Skip the 'deploy' or '.github' folders
             if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
               continue
             fi
 
-            # Only build if there is a main.py inside the folder
             if [ -f "$dirname/main.py" ]; then
               echo "Building game in folder: $dirname"
               
-              # Build the game
               python -m pygbag --build "$dirname/"
               
-              # Create subfolder in deploy and move build files
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
               
-              # If you have a custom theater page (like td_play.html)
-              # this line copies it if it exists (e.g., td/td_play.html)
+              # --- THE FIX STARTS HERE ---
+              # Copy the thumbnail and any other images from the game folder
+              # '|| true' prevents the script from crashing if no images exist
+              cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
+              cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
+              # --- THE FIX ENDS HERE ---
+
               if [ -f "$dirname/${dirname}_play.html" ]; then
                 cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
               fi
