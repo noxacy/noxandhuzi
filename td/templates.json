@@ -178,21 +178,51 @@
                 }
             ]
         },
-        "Tətoristə":
+        "Tatorista":
         {
-            "damage": 999,
+            "damage": 3,
             "range": 300,
-            "firerate": 4,
+            "firerate": 5,
             "color": "#ffffff",
-            "cost": 100,
+            "cost": 600,
+            "blastradius": 150,
             "attributes": {"damage_type": "splash"},
             "upgrades":
             [
                 {
-                    "name": "Run to turkey",
-                    "desc": "Increases safety",
-                    "price": 100,
-                    "damage": 3
+                    "name": "Run to Turkey",
+                    "desc": "Increases damage",
+                    "price": 900,
+                    "damage": 6
+                },
+                {
+                    "name": "Run to Iraq",
+                    "desc": "Increases range",
+                    "price": 1500,
+                    "range": 500
+                }
+            ]
+        },
+        "Orchard":
+        {
+            "damage": 100,
+            "range": 0,
+            "firerate": 0,
+            "color": "#ffffff",
+            "cost": 350,
+            "attributes": {"money_tower": true},
+            "upgrades":
+            [
+                {
+                    "name": "More fruits",
+                    "desc": "Increases income",
+                    "price": 900,
+                    "damage": 200
+                },
+                {
+                    "name": "More veggies",
+                    "desc": "Increases income",
+                    "price": 1500
                 }
             ]
         }
@@ -261,25 +291,55 @@
         },
         "Lightspeed":
         {
-            "maxhealth": 50,
+            "maxhealth": 40,
             "size": 40,
-            "color": "#97ff7d",
+            "color": "#ffffff",
             "speed": 250
         },
         "Slime":
         {
-            "maxhealth": 50,
+            "maxhealth": 100,
             "size": 40,
             "color": "#97ff7d",
             "speed": 80,
-            "attributes": {"death_spawn": ["Goo"], "quantity": 0}
+            "attributes": {"death_spawn": ["Goo"], "quantity": 3}
         },
         "Goo":
         {
             "maxhealth": 25,
-            "size": 40,
-            "color": "#97ff7d",
+            "size": 30,
+            "color": "#97ee7d",
             "speed": 100
+        },
+        "CEO":
+        {
+            "maxhealth": 2500,
+            "size": 100,
+            "color": "#0d210d",
+            "speed": 10
+        },
+        "Normaler":
+        {
+            "maxhealth": 35,
+            "size": 40,
+            "color": "#00ff00",
+            "speed": 100
+        },
+        "Mythic":
+        {
+            "maxhealth": 120,
+            "size": 30,
+            "color": "#aa19d6",
+            "speed": 55,
+            "attributes": {"death_spawn": ["Slime", "Normaler", "Lightspeed", "Healthy", "Witch", "Leader"]}
+        },
+        "Shadow Leader":
+        {
+            "maxhealth": 1000,
+            "size": 90,
+            "color": "#08101f",
+            "speed": 40,
+            "hidden": true
         }
     },
     "route":
@@ -381,9 +441,93 @@
             {"name": "Witch", "quantity": 1, "cooldown": 5},
             [70,700]
         ],
-        "wave 18":
+        "wave18":
         [
-            {"name": ""}
+            {"name": "Healthy", "quantity": 3, "cooldown": 5},
+            {"name": "Witch", "quantity": 2, "cooldown": 10},
+            [70,750]
+        ]
+        ,
+        "wave19":
+        [
+            {"name": "Shadow", "quantity": 10, "cooldown": 3},
+            {"name": "Myth", "quantity": 10, "cooldown": 3},
+            {"name": "Healthy", "quantity": 3, "cooldown": 5},
+            [75,750]
+        ]
+        ,
+        "wave20":
+        [
+            {"name": "CEO", "quantity": 1, "cooldown": 5},
+            [90,750]
+        ]
+        ,
+        "wave21":
+        [
+            {"name": "Swift", "quantity": 64, "cooldown": 0.25},
+            {"name": "Heavy", "quantity": 10, "cooldown": 1},
+            {"name": "Witch", "quantity": 2, "cooldown": 5},
+            [75,750]
+        ]
+        ,
+        "wave22":
+        [
+            {"name": "Healthy", "quantity": 10, "cooldown": 5},
+            [60,750]
+        ]
+        ,
+        "wave23":
+        [
+            {"name": "Normaler", "quantity": 15, "cooldown": 1},
+            {"name": "Witch", "quantity": 3, "cooldown": 7},
+            [70,750]
+        ]
+        ,
+        "wave24":
+        [
+            {"name": "Shadow", "quantity": 10, "cooldown": 3},
+            {"name": "Healthy", "quantity": 10, "cooldown": 5},
+            {"name": "Witch", "quantity": 3, "cooldown": 5},
+            [70,750]
+        ]
+        ,
+        "wave25":
+        [
+            {"name": "Slime", "quantity": 3, "cooldown": 3},
+            [70,750]
+        ]
+        ,
+        "wave26":
+        [
+            {"name": "Slime", "quantity": 5, "cooldown": 3},
+            {"name": "Normaler", "quantity": 10, "cooldown": 1},
+            [70,750]
+        ]
+        ,
+        "wave27":
+        [
+            {"name": "Shadow", "quantity": 15, "cooldown": 1},
+            {"name": "Slime", "quantity": 3, "cooldown": 3},
+            [70,750]
+        ]
+        ,
+        "wave28":
+        [
+            {"name": "CEO", "quantity": 2, "cooldown": 15},
+            [90,750]
+        ]
+        ,
+        "wave29":
+        [
+            {"name": "Shadow", "quantity": 25, "cooldown": 1},
+            {"name": "Mythic", "quantity":10, "cooldown": 3},
+            [70,750]
+        ]
+        ,
+        "wave30":
+        [
+            {"name": "Shadow Leader", "quantity": 1, "cooldown": 10},
+            [70,750]
         ]
     }
 }

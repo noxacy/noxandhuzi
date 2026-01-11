@@ -11,6 +11,7 @@ gui = 0
 font1 = pygame.font.SysFont(None, 50)
 font2 = pygame.font.SysFont(None, 35)
 font3 = pygame.font.SysFont(None, 20)
+selected = None
 mx, my = 0, 0
 cache = {}
 with open("templates.json", "r") as f:
@@ -21,7 +22,7 @@ with open("templates.json", "r") as f:
 
 class Base:
     def __init__(self):
-        self.maxhp = 250
+        self.maxhp = 300
         self.hp = self.maxhp
 
     def decrease_hp(self, amount):
@@ -32,11 +33,11 @@ class Base:
 
     def increase_hp(self, amount):
         self.hp += amount
-        if self.hp > 250:
-            self.hp = 250
+        if self.hp > self.maxhp:
+            self.hp = self.maxhp
 
 class BlastProjectile:
-    def __init__(self, targetx, targety, currentx, currenty, blastradius, damage, color, size):
+    def __init__(self, targetx, targety, currentx, currenty, blastradius, damage, color, size, parent):
         self.target = (targetx, targety)
         self.pos = [currentx, currenty]
         self.col = color
@@ -45,31 +46,43 @@ class BlastProjectile:
         self.size = size
         self.dx = targetx - self.pos[0]
         self.dy = targety - self.pos[1]
-        length = (self.dx*2 + self.dy*2)**0.5
+        self.rect = pygame.Rect(currentx, currenty, size, size)
+        self.parent = parent
+        self.speed = 500
+        length = (self.dx**2 + self.dy**2)**0.5
         if length != 0:
-            self.dir = (dx/length, dy/length)
+            self.dir = (self.dx/length, self.dy/length)
         else:
             self.dir = (0, 0)
 
     def boom(self):
-        pass
+        obj = [["#ffffff", self.pos, self.radius], 0.2]
+        temporary.append(obj)
+        givendmg = 0
+        for i in enemies[:]:
+            dx, dy = self.pos[0] - i.rect.centerx, self.pos[1] - i.rect.centery
+            dist = (dx**2+dy**2)**0.5
+            if dist <= self.radius:
+                i.take_damage(self.dmg)
+                givendmg += self.dmg
+        self.parent.totaldmg += givendmg
+        projectiles.remove(self)
 
     def update(self, dt):
-        self.pos = (
-            self.dir[0] * speed * dt,
-            self.dir[1] * speed * dt
-        )
-        self.dx = targetx - self.pos[0]
-        self.dy = targety - self.pos[1]
-        length = (self.dx*2 + self.dy*2)**0.5
-        if length < 1:
+        self.pos[0] += self.dir[0] * self.speed * dt
+        self.pos[1] += self.dir[1] * self.speed * dt
+        self.rect.center = self.pos
+        self.dx = self.target[0] - self.pos[0]
+        self.dy = self.target[1] - self.pos[1]
+        length = (self.dx**2 + self.dy**2)**0.5
+        if length < self.speed*dt:
             self.boom()
 
 class Game:
     def __init__(self):
         global gui, route
         self.map = [(W/4, H), (W/4, H/5), (W/4*3, H/5), (W/4*3, H/5*4), (W/2, H/5*4), (W/2, H/5*2), (W, H/5*2)]
-        self.money = 550
+        self.money = 55000000
         self.text_cache = {}
         self.waittime = 0
         self.quant = 0
@@ -264,6 +277,7 @@ class placeholderTower:
             full = towerTemp[tower]
             self.col = full["color"]
             self.cost = full["cost"]
+            self.range = full["range"]
             self.rect = pygame.Rect(0, 0, self.size, self.size)
             gui = 2
         else:
@@ -292,6 +306,8 @@ class Tower:
             self.upgs = full["upgrades"]
             self.attributes = full.get("attributes", {})
             self.hidden = bool(self.attributes.get("detection", False))
+            self.dmgtype = self.attributes.get("damage_type", "normal")
+            self.radius = full.get("blastradius", None)
             self.lvl = 0
             self.nextupgradeprice = self.upgs[self.lvl]["price"]
             self.totaldmg = 0
@@ -336,20 +352,24 @@ class Tower:
         return objs
 
     def update(self, dt, enemies):
-        if self.waittime > 0:
-            self.waittime -= dt
-        if self.waittime <= 0:
-            elist = self.get_in_range(enemies)
-            if len(elist) > 0:
-                if self.mode == "first":
-                    theone_data = max(elist, key=lambda x: x[0].process)
-                    target_enemy = theone_data[0]
-                elif self.mode == "strongest":
-                    theone_data = max(elist, key=lambda x: x[0].maxhp)
-                    target_enemy = theone_data[0]
-                target_enemy.take_damage(self.dmg)
-                self.totaldmg += self.dmg
-                self.waittime = self.frate
+        if self.dmgtype == "normal" or self.dmgtype == "splash":
+            if self.waittime > 0:
+                self.waittime -= dt
+            if self.waittime <= 0:
+                elist = self.get_in_range(enemies)
+                if len(elist) > 0:
+                    if self.mode == "first":
+                        theone_data = max(elist, key=lambda x: x[0].process)
+                        target_enemy = theone_data[0]
+                    elif self.mode == "strongest":
+                        theone_data = max(elist, key=lambda x: x[0].maxhp)
+                        target_enemy = theone_data[0]
+                    if self.dmgtype == "normal":
+                        target_enemy.take_damage(self.dmg)
+                        self.totaldmg += self.dmg
+                    elif self.dmgtype == "splash":
+                        projectiles.append(BlastProjectile(target_enemy.x, target_enemy.y, self.x, self.y, self.radius, self.dmg, "#00ffff", 25, self))
+                    self.waittime = self.frate
 
     def sell(self):
         game.inc_money(self.sellprice)
@@ -357,10 +377,11 @@ class Tower:
 
 towers = []
 enemies = []
-temporar
+projectiles = []
+temporary = []
 shop_button_rect = pygame.Rect(W/128, H-H/9, W/5.5, H/10)
 skip_wave_rect = pygame.Rect(0,0,W/19.2,H/10.8)
-skip_wave_rect.center=(W/128*125.2-W/19.2,H/72*65-H/10.8) 
+skip_wave_rect.center=(W/128*10,H/72*7) 
 tower_cancel_rect = pygame.Rect(W/10*9, H-H/9, W/19.2, H/10.8)
 shop_rect = pygame.Rect(W/2-((W/3)*2)/2, H/2-(H/4*3)/2, W/3*2, H/4*3)
 shop_surf = pygame.Surface((int(W/3*2), int(H/4*3)))
@@ -410,6 +431,18 @@ def events(dt):
                 enemies.append(Enemy("Healthy"))
             elif e.key == pygame.K_9:
                 enemies.append(Enemy("Lightspeed"))
+            elif e.key == pygame.K_0:
+                enemies.append(Enemy("Slime"))
+            elif e.key == pygame.K_F1:
+                enemies.append(Enemy("Goo"))
+            elif e.key == pygame.K_F2:
+                enemies.append(Enemy("CEO"))
+            elif e.key == pygame.K_F3:
+                enemies.append(Enemy("Normaler"))
+            elif e.key == pygame.K_F4:
+                enemies.append(Enemy("Mythic"))
+            elif e.key == pygame.K_F5:
+                enemies.append(Enemy("Shadow Leader"))
             elif e.key == pygame.K_q:
                 if gui == 2:
                     placing_tower = False
@@ -417,12 +450,12 @@ def events(dt):
                     gui = 0
         elif e.type == pygame.MOUSEBUTTONDOWN:
             if e.button == 1:
-                if gui == 0:
+                if skip_wave_rect.collidepoint(e.pos):
+                    if len(enemies) == 0:
+                        game.skip_wave()
+                elif gui == 0:
                     if shop_button_rect.collidepoint(e.pos):
                         gui = 1
-                    elif skip_wave_rect.collidepoint(e.pos):
-                        if len(enemies) == 0:
-                            game.skip_wave()
                     else:
                         for i, t in enumerate(towers):
                             if t.rect.collidepoint(e.pos):
@@ -465,6 +498,11 @@ def events(dt):
                             selected.sell()
                             gui = 0
                     else:
+                        for i, t in enumerate(towers):
+                            if t.rect.collidepoint(e.pos):
+                                gui = 3
+                                selected = t
+                                return
                         gui = 0
         elif e.type == pygame.MOUSEWHEEL:
             if e.y > 0:
@@ -483,6 +521,7 @@ def events(dt):
                         game.cached_draw(w, font1, f"{enemy.hp} / {enemy.maxhp}", "#ffffff", (mx, my), False)
 
 def draw(dt):
+    global selected
     w.fill("#000000")
     pygame.draw.lines(w, "#494949", False, game.map, 5)
     for enemy in enemies:
@@ -490,24 +529,37 @@ def draw(dt):
     for tower in towers:
         tower.update(dt, enemies)
         pygame.draw.rect(w, tower.col, tower.rect)
-        pygame.draw.circle(w, (255, 255, 255), tower.rect.center, tower.range, 10)
+    for idx, obj in enumerate(temporary):
+            if obj[1] < 0:
+                temporary.pop(idx)
+                continue
+            temporary[idx][1] -= dt
+            pygame.draw.circle(w, obj[0][0], obj[0][1], obj[0][2], 1)
+    for obj in projectiles:
+        pygame.draw.rect(w, obj.col, obj.rect)
+        obj.update(dt)
+    if len(enemies) == 0 and game.candrawskip:
+        pygame.draw.rect(w, "#00ff00", skip_wave_rect)
+        game.cached_draw(w, font3, "Instant-Skip", "#000000", skip_wave_rect.center, True)
+    if selected is not None:
+        pygame.draw.circle(w, (255, 255, 255), selected.rect.center, selected.range, 10)
     if gui == 0:
         pygame.draw.rect(w, "#ff0000", shop_button_rect)
-        if len(enemies) == 0 and game.candrawskip:
-            pygame.draw.rect(w, "#00ff00", skip_wave_rect)
-            game.cached_draw(w, font3, "Instant-Skip", "#000000", skip_wave_rect.center, True)
+        selected = None
         for e in enemies:
             if e.rect.collidepoint((mx, my)):
                 game.cached_draw(w, font1, e.name, "#ffffff", (mx, my-H/30), True)
                 game.cached_draw(w, font2, f"{e.hp} / {e.maxhp}", "#ffffff", (mx, my), True)
                 break
-        for t in towers:
+        for t in towers[::-1]:
             if t.rect.collidepoint((mx, my)):
                 if t.lvl != t.maxlvl:
                     game.cached_draw(w, font2, f"Level: {t.lvl} / {t.maxlvl}", "#ffffff", (mx, my), True)
                 else:
                     game.cached_draw(w, font2, "MAX LEVEL", "#ffffff", (mx, my), True)
                 game.cached_draw(w, font1, f"{t.name}", "#ffffff", (mx, my-H/30), True)
+                pygame.draw.circle(w, (255, 255, 255), t.rect.center, t.range, 10)
+                break
     elif gui == 1:
         shop_surf.fill("#707070")
         for button in shop_button_copies:
@@ -522,6 +574,7 @@ def draw(dt):
             phtower.update()
             pygame.draw.rect(w, phtower.col, phtower.rect)
             pygame.draw.rect(w, "#ff0000", tower_cancel_rect)
+            pygame.draw.circle(w, (255, 255, 255), phtower.rect.center, phtower.range, 10)
     elif gui == 3:
         towerupgradesurf.fill("#4a4a4a")
         game.cached_draw(towerupgradesurf, font1, selected.name, "#000000", (UW/2, UH/5), True)
@@ -560,11 +613,11 @@ async def main():
     while running:
         dt = clock.tick(maxfps) / 1000.0
         dt = min(dt, 0.1) 
-        
         game.next_ev(dt)
         events(dt)
         draw(dt)
         await asyncio.sleep(0)
+        print()
 
 asyncio.run(main())
 pygame.quit()
