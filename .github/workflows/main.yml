@@ -10,37 +10,58 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-          - uses: actions/checkout@v3
+    steps: 
+      - uses: actions/checkout@v3
 
-          # 1. Set up Python environment
-          - name: Set up Python
-            uses: actions/setup-python@v4
-            with:
-              python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-          # 2. Install pygbag and dependencies
-          - name: Install dependencies
-            run: |
-              python -m pip install --upgrade pip
-              python -m pip install pygbag black
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pygbag black
 
-          # 3. Build the game
-          - name: Build Tower Defense
-            run: |
-              python -m pygbag --build td/
+      - name: Build and Organize All Games
+        run: |
+          # 1. Create the final deployment directory
+          mkdir -p deploy
+          
+          # 2. Copy the main menu
+          cp index.html deploy/
+
+          # 3. Loop through every directory in the repo
+          for dir in */; do
+            # Remove trailing slash for the folder name
+            dirname=${dir%/}
+            
+            # Skip the 'deploy' or '.github' folders
+            if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
+              continue
+            fi
+
+            # Only build if there is a main.py inside the folder
+            if [ -f "$dirname/main.py" ]; then
+              echo "Building game in folder: $dirname"
               
-          # 4. Assemble the Arcade (Menu + Game)
-          - name: Prepare Deployment Folder
-            run: |
-              mkdir -p deploy
-              cp index.html deploy/
-              mkdir -p deploy/td
-              cp -r td/build/web/* deploy/td/
+              # Build the game
+              python -m pygbag --build "$dirname/"
+              
+              # Create subfolder in deploy and move build files
+              mkdir -p "deploy/$dirname"
+              cp -r "$dirname/build/web/"* "deploy/$dirname/"
+              
+              # If you have a custom theater page (like td_play.html)
+              # this line copies it if it exists (e.g., td/td_play.html)
+              if [ -f "$dirname/${dirname}_play.html" ]; then
+                cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
+              fi
+            fi
+          done
 
-          # 5. Deploy
-          - name: Deploy to GitHub Pages
-            uses: JamesIves/github-pages-deploy-action@v4
-            with:
-              folder: deploy
-              branch: gh-pages
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: deploy
+          branch: gh-pages
