@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Playing Tower Defense | Nox & Huzi's Arcade</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3553688527206955" crossorigin="anonymous"></script>
+    
+    <style>
+        body { background-color: #0b0c10; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .nav-bar { width: 100%; background: #1b1c22; padding: 15px 40px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
+        .nav-bar a { color: #7a2fff; text-decoration: none; font-weight: bold; }
+        .fullscreen-btn { background: #7a2fff; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .container { display: grid; grid-template-columns: 1fr 800px 300px; gap: 20px; padding: 20px; max-width: 1400px; }
+        .game-wrapper { grid-column: 2; background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; aspect-ratio: 16 / 9; width: 100%; }
+        iframe { width: 100%; height: 100%; border: none; display: block; }
+        .image-gallery { grid-column: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .game-img { width: 100%; border-radius: 8px; border: 2px solid #1b1c22; }
+        .sidebar { grid-column: 3; display: flex; flex-direction: column; gap: 15px; }
+        .ad-space { background: #1b1c22; min-height: 250px; border-radius: 8px; overflow: hidden; }
+        .other-games-mini { background: #1b1c22; padding: 10px; border-radius: 8px; }
+        .mini-card { display: flex; gap: 10px; margin-bottom: 10px; text-decoration: none; color: white; font-size: 0.8rem; }
+        .mini-thumb { width: 50px; height: 50px; background: #333; border-radius: 4px; }
+        .game-info { grid-column: 2; padding: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../index.html">← BACK TO ARCADE</a>
+        <button class="fullscreen-btn" onclick="openFullscreen();">GO FULLSCREEN</button>
+    </div>
+
+    <div class="container">
+        <div class="game-wrapper" id="gameArea">
+            <iframe id="gameIframe" src="index.html"></iframe>
+        </div>
+
+        <div class="game-info">
+            <h2>Tower Defense: Tactical Survival</h2>
+            <p>Welcome to the ultimate challenge in strategic defense. In <strong>Tower Defense: Tactical Survival</strong>, you are the last line of defense against an ever-evolving army of invaders. This project, built by <strong>Noxacy & Huzeyfe</strong>, combines classic arcade mechanics with modern performance optimization.</p>
+
+            <h3>Ultimate Strategy & Gameplay Guide</h3>
+            <p>Success in this game requires more than just placing towers; it requires a deep understanding of <strong>resource management</strong> and <strong>bottleneck tactics</strong>. Here are the core strategies to help you dominate the leaderboard:</p>
+            
+            <ul>
+                <li><strong>Path Optimization:</strong> Always look for "U-turns" in the enemy path. Placing a tower at the center of a curve allows it to hit enemies for the longest possible duration as they wrap around the turret.</li>
+                <li><strong>Economic Balance:</strong> While it is tempting to build as many towers as possible, upgrading a single well-placed tower is often more effective than having five weak ones. High-level towers pierce armor and have significantly higher fire rates.</li>
+                <li><strong>Target Prioritization:</strong> Not all enemies are the same. Fast scouts can slip past your heavy cannons, while tanky bosses require sustained damage. Ensure your tower distribution covers both high-speed and high-health threats.</li>
+            </ul>
+
+            <h3>The Technology Behind the Game</h3>
+            <p>Our game is built using <strong>Python and Pygame</strong>, then compiled into <strong>WebAssembly (WASM)</strong> via the Pygbag compiler. This allows for near-native performance directly in your browser. Whether you are playing on a desktop or a mobile device in landscape mode, our custom-built engine ensures smooth frame rates and responsive controls.</p>
+
+            <p><em>Master the grid, upgrade your arsenal, and see how many waves you can survive in this Noxacy & Huzeyfe original!</em></p>
+        </div>
+
+        <div class="sidebar">
+            <div class="ad-space">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-3553688527206955"
+                     data-ad-slot="DATA_AD_SLOT_HERE"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+            
+            <div class="other-games-mini">
+                <h4>Related Games</h4>
+                <a href="#" class="mini-card"><div class="mini-thumb"></div><div><strong>Coming soon</strong><br>Action</div></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var elem = document.getElementById("gameArea");
+    async function openFullscreen() {
+        try {
+            if (elem.requestFullscreen) { await elem.requestFullscreen(); }
+            else if (elem.webkitRequestFullscreen) { await elem.webkitRequestFullscreen(); }
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape').catch(e => console.log(e));
+            }
+        } catch (err) { console.error(err); }
+    }
+    </script>
+</body>
+</html>
