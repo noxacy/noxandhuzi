@@ -30,6 +30,8 @@ jobs:
           cp ads.txt deploy/
           cp privacy.html deploy/
           cp terms.html deploy/
+          cp about.html deploy/
+          cp contact.html deploy/
           
           # 2. Copy the main menu
           cp index.html deploy/
