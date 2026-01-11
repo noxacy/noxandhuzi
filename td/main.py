@@ -35,6 +35,22 @@ class Base:
         if self.hp > 250:
             self.hp = 250
 
+class BlastProjectile:
+    def __init__(self, targetx, targety, currentx, currenty, blastradius, damage, color, size):
+        self.target = (targetx, targety)
+        self.pos = [currentx, currenty]
+        self.col = color
+        self.radius = blastradius
+        self.dmg = damage
+        self.size = size
+        dx = targetx - currentx
+        dy = targety - currenty
+        length = (dx*2 + dy*2)**0.5
+        if length != 0:
+            self.dir = (dx/length, dy/length)
+    
+    def update(self, dt):
+        pass
 class Game:
     def __init__(self):
         global gui, route

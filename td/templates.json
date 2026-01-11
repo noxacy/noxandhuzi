@@ -177,6 +177,24 @@
                     "firerate": 0.28
                 }
             ]
+        },
+        "Tətoristə":
+        {
+            "damage": 999,
+            "range": 300,
+            "firerate": 4,
+            "color": "#ffffff",
+            "cost": 100,
+            "attributes": {"damage_type": "splash"},
+            "upgrades":
+            [
+                {
+                    "name": "Run to turkey",
+                    "desc": "Increases safety",
+                    "price": 100,
+                    "damage": 3
+                }
+            ]
         }
     },
     "enemies":
