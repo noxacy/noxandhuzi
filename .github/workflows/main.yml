@@ -1,7 +1,8 @@
 name: Deploy Pygame to GitHub Pages
 
 on:
-  workfow_dispatch:
+  push:
+    branches: [ main ]  # Runs every time you push to main
 
 permissions:
   contents: write
