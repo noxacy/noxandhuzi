@@ -105,10 +105,21 @@ class Game():
         except: pass
 
     def save_game(self):
-        d = {"money": self.m, "clicks": self.click, "building_counts": [b[7] for b in self.buildings], "upgrade_status": [u[3] for u in self.upgrades]}
+        d = {
+            "money": self.m, 
+            "clicks": self.click, 
+            "building_counts": [b[7] for b in self.buildings], 
+            "upgrade_status": [u[3] for u in self.upgrades]
+        }
         try:
-            with open("savegame.dat", "w") as f: json.dump(d, f)
-        except: pass
+            with open("savegame.dat", "w") as f: 
+                json.dump(d, f)
+            # Pygbag için LocalStorage senkronizasyonu
+            if sys.platform == "emscripten":
+                import platform
+                platform.js_redirect("window.localStorage.setItem('save', JSON.stringify(" + json.dumps(d) + "))")
+        except Exception as e: 
+            print(f"Save hatası: {e}")
 
     def handle_clicks(self, pos):
         if self.akif_rect.collidepoint(pos):
@@ -142,8 +153,13 @@ class Game():
                 count += 1
                 if count >= 9: break
 
+            # Golden Akif Tıklama Kontrolü
         if self.golden_akif_active and self.golden_akif_rect.collidepoint(pos):
-            self.m += max(500, int(self.mps * 600)); self.golden_akif_active = False; clicksound.play()
+            self.m += max(500, int(self.mps * 600))
+            self.golden_akif_active = False
+            # KRİTİK: Tıklandığı an yeni bir rastgele süre belirle
+            self.golden_akif_timer = random.randint(120, 180) 
+            clicksound.play()
 
 def compress(n):
     u = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"]
