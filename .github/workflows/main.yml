@@ -29,29 +29,35 @@ jobs:
           # 1. Dağıtım klasörünü oluştur
           mkdir -p deploy
           
-          # 2. Kök dizindeki dosyaları koru (index, ads, privacy vb.)
+          # 2. Kök dizindeki ana web dosyalarını kopyala
           cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/ 2>/dev/null || true
           
-          # 3. Her oyun klasörü için build al
+          # 3. Her oyun klasörü için build al (aclicker, projectx, td)
           for dir in aclicker projectx td; do
             if [ -d "$dir" ] && [ -f "$dir/main.py" ]; then
-              echo "--- BUILDING: $dir ---"
+              echo "--- BUILDING GAME: $dir ---"
               
-              # Pygbag build işlemini başlat
+              # Pygbag build: Bu komut build/web klasörünü oluşturur
               python -m pygbag --build --no_opt "$dir/"
               
-              # Oyunun kendi klasörünü deploy içinde oluştur
+              # Hedef klasörü oluştur
               mkdir -p "deploy/$dir"
               
-              # Build sonucunda oluşan her şeyi (index.html, .js, .apk vs.) kopyala
+              # Pygbag'in ürettiği her şeyi (index.html, .js, .data vb.) taşı
               if [ -d "$dir/build/web" ]; then
                 cp -r "$dir/build/web/"* "deploy/$dir/"
                 
-                # Navigator Yama (JS Hatasını çözmek için şart)
+                # ÖNEMLİ: Kendi HTML dosyanı (örn: projectx_play.html) index.html olarak kopyala
+                # Çünkü pygbag runtime'ı index.html üzerinden çalışmaya ayarlıdır.
+                if [ -f "$dir/${dir}_play.html" ]; then
+                  cp "$dir/${dir}_play.html" "deploy/$dir/index.html"
+                fi
+                
+                # Navigator Yama (Hata giderici)
                 find "deploy/$dir" -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i 's/navigator.userAgentData.mobile/(navigator.userAgentData \&\& navigator.userAgentData.mobile ? navigator.userAgentData.mobile : \/Mobi|Android|iPhone\/i.test(navigator.userAgent))/g' {} +
               fi
               
-              # JSON ve Resim dosyalarını unutma (pygbag bazen bunları dışarıda bırakır)
+              # JSON ve Resim gibi yan dosyaları doğrudan klasöre kopyala
               cp "$dir"/*.json "$dir"/*.png "$dir"/*.jpg "deploy/$dir/" 2>/dev/null || true
             fi
           done
