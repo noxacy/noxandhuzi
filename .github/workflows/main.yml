@@ -41,7 +41,6 @@ jobs:
               
               python -m pygbag --build "$dirname/"
               
-              
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
               
@@ -63,3 +62,5 @@ jobs:
         with:
           folder: deploy
           branch: gh-pages
+
+          
