@@ -1683,6 +1683,11 @@ performance = bool(settings.get("performance", True))
 render_w = max(1, int(W / ZOOM))
 render_h = max(1, int(H / ZOOM))
 running = True
+
+render_w = max(1, int(W / ZOOM))
+render_h = max(1, int(H / ZOOM))
+render_surf = pygame.Surface((render_w, render_h), pygame.SRCALPHA)
+
 async def main():
     global running, camx, camy, editor, shake_time, particles, debug, selected_tile, shake_mag
 
@@ -1690,6 +1695,7 @@ async def main():
         def input(*args, **kwargs):
             return ""
 
+    last_time = pygame.time.get_ticks()
 
     while running:
         SCREEN.blit(NEWBG, (0, 0))
@@ -1702,11 +1708,14 @@ async def main():
             SCREEN.blit(factory, (W/2-(camx/1.5)%W, 0-(camy/5)+H*2))
             SCREEN.blit(factory, (W-(camx/1.5)%W, 0-(camy/5)+H*2))
             SCREEN.blit(factory, (W*1.5-(camx/1.5)%W, 0-(camy/5)+H*2))
-        dt = clock.tick(FPS_TARGET) / 1000.0
+        now = pygame.time.get_ticks()
+        dt = (now - last_time) / 1000.0
+        last_time = now
+
         fps = clock.get_fps()
         render_w = max(1, int(W / ZOOM))
         render_h = max(1, int(H / ZOOM))
-        render_surf = pygame.Surface((render_w, render_h), pygame.SRCALPHA)
+        render_surf.fill((0, 0, 0, 0))
 
         #a
         w_pressed_now = False
@@ -2031,5 +2040,9 @@ async def main():
         pygame.display.flip()
         await asyncio.sleep(0)
 
-asyncio.run(main())
-pygame.quit()
+if platform.system() == "Emscripten":
+    # pygbag / web
+    asyncio.ensure_future(main())
+else:
+    # normal desktop
+    asyncio.run(main())
