@@ -58,7 +58,7 @@ ONE_WAY_IDS = {2, 3, 4, 5}
 
 PALETTE_COLS = 6
 PALETTE_PADDING = 8
-
+W, H = 1920, 1080
 pygame.init()
 pygame.mixer.init()
 pygame.display.set_caption("Akif Clicker v1.0")
@@ -67,12 +67,7 @@ dash_s = pygame.mixer.Sound(os.path.join("assets", "dash.ogg"))
 key_s = pygame.mixer.Sound(os.path.join("assets", "key.ogg"))
 die_s = pygame.mixer.Sound(os.path.join("assets", "die.ogg"))
 
-try:
-    SCREEN = pygame.display.set_mode((1920, 1080))
-    W, H = 1920, 1080
-except pygame.error:
-    W, H = 1920, 1080
-    SCREEN = pygame.display.set_mode((W, H))
+SCREEN = pygame.display.set_mode((W, H))
 
 clock = pygame.time.Clock()
 ZOOM = 2.0
