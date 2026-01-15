@@ -1708,7 +1708,7 @@ async def main():
         render_h = max(1, int(H / ZOOM))
         render_surf = pygame.Surface((render_w, render_h), pygame.SRCALPHA)
 
-
+        #a
         w_pressed_now = False
         for ev in pygame.event.get():
             if ev.type == pygame.QUIT:
