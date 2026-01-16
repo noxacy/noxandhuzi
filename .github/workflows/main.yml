@@ -31,12 +31,10 @@ jobs:
       # Oyunları build et ve deploy klasörüne kopyala
       - name: Build and Organize All Games
         run: |
-          # Temizlik
           rm -rf */build
           rm -rf deploy
           mkdir -p deploy
-          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/ 2>/dev/null || true
-
+          
           # Tüm oyun klasörlerini dolaş
           for dir in */; do
             dirname=${dir%/}
@@ -61,6 +59,28 @@ jobs:
               # özel play html varsa kopyala
               if [ -f "$dirname/${dirname}_play.html" ]; then
                 cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
+              fi
+
+              # --- PATCH: index.html dosyasına doctype ve navigator patch ekle ---
+              INDEX_FILE="deploy/$dirname/index.html"
+
+              # Eğer index.html varsa işle
+              if [ -f "$INDEX_FILE" ]; then
+                # geçici dosya
+                TMP_FILE="$INDEX_FILE.tmp"
+
+                # ilk satır: DOCTYPE, sonra navigator patch, sonra orijinal index
+                echo "<!DOCTYPE html>" > "$TMP_FILE"
+                echo "<script>
+if (typeof navigator.userAgentData === 'undefined') {
+    navigator.userAgentData = { mobile: false };
+}
+</script>" >> "$TMP_FILE"
+
+                # Orijinal index'i ekle, head tag’ini bulmadan ekle
+                tail -n +1 "$INDEX_FILE" >> "$TMP_FILE"
+
+                mv "$TMP_FILE" "$INDEX_FILE"
               fi
             fi
           done
