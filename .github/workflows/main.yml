@@ -52,23 +52,26 @@ jobs:
               INDEX="deploy/$dirname/index.html"
 
               if [ -f "$INDEX" ]; then
-                echo "Patching index.html for userAgentData fix"
+                echo "Patching index.html"
 
+                # DOCTYPE fix
                 sed -i '1{/^<!DOCTYPE html>/!s/^/<!DOCTYPE html>\n/}' "$INDEX"
-                # navigator.userAgentData FIX (KESİNLİKLE <head> içine)
-                sed -i '/<head>/a \
-                <script>\nif(!navigator.userAgentData){navigator.userAgentData={mobile:false};}\n</script>' "$INDEX"
 
-              # Klasördeki görselleri de kopyala
+                # navigator.userAgentData FIX (head içine, bash-safe)
+                sed -i '/<head>/a <script>if(!navigator.userAgentData){navigator.userAgentData={mobile:false};}</script>' "$INDEX"
+              fi
+
+              # Assets
               cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
               cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
 
-              # Oyun-specific HTML varsa kopyala
+              # Game-specific HTML
               if [ -f "$dirname/${dirname}_play.html" ]; then
                 cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
               fi
             fi
           done
+
 
 
       - name: Deploy to GitHub Pages
