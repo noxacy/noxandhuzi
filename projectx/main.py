@@ -1,3 +1,4 @@
+import numpy as np
 from __future__ import annotations
 
 import platform
@@ -7,7 +8,6 @@ if platform.system() == "Emscripten":
     js.window.eval("window.is_background_active = true;")
 
 import json, pygame, math, os, random, sys, hashlib, asyncio
-import numpy as np
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple, Any
 
