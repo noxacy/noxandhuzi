@@ -3,6 +3,9 @@
       if (typeof navigator.userAgentData === 'undefined') {
           navigator.userAgentData = { mobile: false };
       }
+      window.addEventListener('load', () => {
+          if (typeof py_init === 'function') { py_init(); }
+      });
       </script>
 <html lang="en-us"><script src="https://pygame-web.github.io/archives/0.9/pythons.js" type=module id=site data-LINES=57 data-CONSOLE=25 data-python=python3.12 data-os=vtx,fs,snd,gui async defer>#<!--
 
