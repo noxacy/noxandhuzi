@@ -2,7 +2,7 @@ name: Deploy Pygame to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]  # Runs every time you push to main
 
 permissions:
   contents: write
@@ -10,67 +10,50 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
-    steps:
+    steps: 
       - uses: actions/checkout@v3
 
-      - name: Set up Python 3.12
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pygbag numpy
+          python -m pip install pygbag black
+          python -m pip install numpy
 
-      - name: Prepare deploy folder
+      - name: Build and Organize All Games
         run: |
-          rm -rf deploy
           mkdir -p deploy
-          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/ || true
-
-      - name: Build and patch games
-        run: |
+          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/
+          
           for dir in */; do
-            dirname="${dir%/}"
-
-            case "$dirname" in
-              deploy|.github)
-                continue
-                ;;
-            esac
+            dirname=${dir%/}
+            
+            if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
+              continue
+            fi
 
             if [ -f "$dirname/main.py" ]; then
               echo "Building game in folder: $dirname"
-
+              
               python -m pygbag --build "$dirname/"
-
+              
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
-
-              # 🔥 TÜM HTML DOSYALARINI PATCHLE
-              find "deploy/$dirname" -name "*.html" | while read HTML; do
-                echo "Patching $HTML"
-
-                # 1️⃣ Her şeyi temizle (eski yanlış eklemeler dahil)
-                sed -i '/navigator.userAgentData/d' "$HTML"
-                sed -i '/<!DOCTYPE html>/d' "$HTML"
-
-                # 2️⃣ DOCTYPE MUTLAKA 1. SATIR
-                sed -i '1i<!DOCTYPE html>' "$HTML"
-
-                # 3️⃣ Script DOCTYPE'TAN SONRA
-                sed -i '2i\
-                <script>\
-                if(!navigator.userAgentData){navigator.userAgentData={mobile:false};}\
-                </script>' "$HTML"
-              done
-
-
-              # Assets
+              
+              # --- THE FIX STARTS HERE ---
+              # Copy the thumbnail and any other images from the game folder
+              # '|| true' prevents the script from crashing if no images exist
               cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
               cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
+              # --- THE FIX ENDS HERE ---
+
+              if [ -f "$dirname/${dirname}_play.html" ]; then
+                cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
+              fi
             fi
           done
 
@@ -79,3 +62,5 @@ jobs:
         with:
           folder: deploy
           branch: gh-pages
+
+          
