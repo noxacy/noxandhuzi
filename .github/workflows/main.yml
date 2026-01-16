@@ -2,7 +2,7 @@ name: Deploy Pygame to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]  # main branch'e her push sonrası çalışacak
 
 permissions:
   contents: write
@@ -10,62 +10,62 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps: 
+
+    steps:
+      # Kodları çek
       - uses: actions/checkout@v3
 
+      # Python 3.11 kur
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
+      # Gerekli paketleri kur
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install pygbag==0.9.0
           python -m pip install numpy
 
+      # Oyunları build et ve deploy klasörüne kopyala
       - name: Build and Organize All Games
         run: |
-          # Clean old builds
+          # Temizlik
           rm -rf */build
           rm -rf deploy
           mkdir -p deploy
-          
-          # Copy global HTML/assets
-          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/
+          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/ 2>/dev/null || true
 
-          # Loop through all game folders
+          # Tüm oyun klasörlerini dolaş
           for dir in */; do
             dirname=${dir%/}
-            
             if [ "$dirname" == "deploy" ] || [ "$dirname" == ".github" ]; then
               continue
             fi
 
             if [ -f "$dirname/main.py" ]; then
               echo "Building game in folder: $dirname"
-              
+
+              # pygbag ile build
               python -m pygbag --build "$dirname/"
-              
+
+              # deploy klasörüne kopyala
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
 
-              # Copy thumbnails / images
+              # resimleri kopyala
               cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
               cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
 
-              # Copy play HTML if exists
+              # özel play html varsa kopyala
               if [ -f "$dirname/${dirname}_play.html" ]; then
                 cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
               fi
-
-              # --- PATCH: Fix navigator.userAgentData error ---
-              PATCH_FILE="deploy/$dirname/user_agent_patch.js"
-              echo "if (typeof navigator.userAgentData === 'undefined') navigator.userAgentData = { mobile: false };" > "$PATCH_FILE"
-              echo "<script src='user_agent_patch.js'></script>" >> "deploy/$dirname/index.html" || true
             fi
           done
 
+      # GitHub Pages'e deploy et
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
