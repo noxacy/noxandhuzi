@@ -98,6 +98,8 @@ class Game:
         self.speed_multiplier = 1
         self.speed_button_rect = pygame.Rect(W - 150, H - 80, 120, 60)
         self.targeting_button_rect = pygame.Rect(W/8, (H/5)*3.5, (W/4)*3, (H/16))
+        self.tower_limit = 20  # Set your desired max towers here
+        self.current_towers = 0
 
     def get_ev(self):
         tmp = route[f"wave{self.wave}"]
@@ -489,13 +491,23 @@ def events(dt):
             
             elif gui == 2: # Double Tap to Place (Mobile Only)
                 if curr_time - game.last_tap_time < 0.3:
-                    if not tower_cancel_rect.collidepoint((tx, ty)):
-                        towers.append(Tower(tx, ty, phtower.name))
-                        game.dec_money(phtower.cost)
-                    phtower = 0
-                    placing_tower = False
-                    gui = 0
-                game.last_tap_time = curr_time
+                    if len(towers) < game.tower_limit: # Limit Check
+                        if not tower_cancel_rect.collidepoint((tx, ty)):
+                            # Create a variable to see if the spot is valid
+                            can_place = True
+                            for t in towers:
+                                # Calculate distance between cursor (mpos) and existing tower
+                                dist = math.hypot(e.pos[0] - t.x, e.pos[1] - t.y)
+                                if dist < 60: # 60 pixels is the "Red Circle" zone
+                                    can_place = False
+                                    break
+                            if can_place and len(towers) < game.tower_limit:
+                                towers.append(Tower(e.pos[0], e.pos[1], phtower.name))
+                                game.dec_money(phtower.cost)
+                        phtower = 0
+                        placing_tower = False
+                        gui = 0
+                    game.last_tap_time = curr_time
 
         elif hasattr(pygame, "FINGERMOTION") and e.type == pygame.FINGERMOTION:
             if gui == 1: # Swipe to Scroll
@@ -535,12 +547,26 @@ def events(dt):
                                     gui = 1
                 elif gui == 2:
                     if phtower != 0:
-                        if not tower_cancel_rect.collidepoint(e.pos):
-                            towers.append(Tower(e.pos[0], e.pos[1], phtower.name))
-                            game.dec_money(phtower.cost)
-                        phtower = 0
-                        placing_tower = False
-                        gui = 0
+                        # Check if limit is reached
+                        if len(towers) < game.tower_limit:
+                            # Create a variable to see if the spot is valid
+                            can_place = True
+                            for t in towers:
+                                # Calculate distance between cursor (mpos) and existing tower
+                                dist = math.hypot(e.pos[0] - t.x, e.pos[1] - t.y)
+                                if dist < 60: # 60 pixels is the "Red Circle" zone
+                                    can_place = False
+                                    break
+
+                            if can_place and len(towers) < game.tower_limit:
+                                towers.append(Tower(e.pos[0], e.pos[1], phtower.name))
+                                game.dec_money(phtower.cost)
+                            phtower = 0
+                            placing_tower = False
+                            gui = 0
+                        else:
+                            # Optional: Add a visual warning or sound here
+                            print("Tower Limit Reached!")
                 elif gui == 3:
                     tuboffset = towerupgradebutton.move(towerupgradespos)
                     tusoffset = towersellbutton.move(towerupgradespos)
@@ -666,6 +692,22 @@ def draw(dt):
             pygame.draw.rect(w, phtower.col, phtower.rect)
             pygame.draw.rect(w, "#ff0000", tower_cancel_rect)
             pygame.draw.circle(w, (255, 255, 255), phtower.rect.center, phtower.range, 10)
+# Draw Red Collision Circles around existing towers
+            for t in towers:
+                pygame.draw.circle(w, "#ff0000", t.rect.center, 60, 2) # 2 is the thickness
+            
+            phtower.update()
+            
+            # Change placeholder color to red if overlapping
+            mpos = pygame.mouse.get_pos()
+            overlap = any(math.hypot(mpos[0]-t.x, mpos[1]-t.y) < 60 for t in towers)
+            
+            # Draw the placement range circle
+            draw_col = "#ff0000" if overlap else (255, 255, 255)
+            pygame.draw.circle(w, draw_col, phtower.rect.center, phtower.range, 5)
+            
+            pygame.draw.rect(w, phtower.col, phtower.rect)
+            pygame.draw.rect(w, "#ff0000", tower_cancel_rect)
     elif gui == 3:
         tuboffset = towerupgradebutton.move(towerupgradespos)
         tusoffset = towersellbutton.move(towerupgradespos)
@@ -755,6 +797,9 @@ def draw(dt):
     game.cached_draw(w, font1, f"{game.money}$", "#00ff00", (W/2, 50), True)
     game.cached_draw(w, font1, f"Wave: {game.wave}", "#00ff00", (W- W/6, 50), True)
     game.cached_draw(w, font1, f"Health: {base.hp} / {base.maxhp}", "#00ff00", (W/6, 50), True)
+    # Tower Limit Counter
+    limit_color = "#00ff00" if len(towers) < game.tower_limit else "#ff0000"
+    game.cached_draw(w, font2, f"Towers: {len(towers)} / {game.tower_limit}", limit_color, (W/6, 90), True)
     pygame.display.flip()
 
 async def main():
