@@ -498,7 +498,7 @@ def events(dt):
                             for t in towers:
                                 # Calculate distance between cursor (mpos) and existing tower
                                 dist = math.hypot(e.pos[0] - t.x, e.pos[1] - t.y)
-                                if dist < 60: # 60 pixels is the "Red Circle" zone
+                                if dist < 80: # 60 pixels is the "Red Circle" zone
                                     can_place = False
                                     break
                             if can_place and len(towers) < game.tower_limit:
@@ -554,7 +554,7 @@ def events(dt):
                             for t in towers:
                                 # Calculate distance between cursor (mpos) and existing tower
                                 dist = math.hypot(e.pos[0] - t.x, e.pos[1] - t.y)
-                                if dist < 60: # 60 pixels is the "Red Circle" zone
+                                if dist < 80: # 60 pixels is the "Red Circle" zone
                                     can_place = False
                                     break
 
@@ -694,13 +694,13 @@ def draw(dt):
             pygame.draw.circle(w, (255, 255, 255), phtower.rect.center, phtower.range, 10)
 # Draw Red Collision Circles around existing towers
             for t in towers:
-                pygame.draw.circle(w, "#ff0000", t.rect.center, 60, 2) # 2 is the thickness
+                pygame.draw.circle(w, "#ff0000", t.rect.center, 80, 2) # 2 is the thickness
             
             phtower.update()
             
             # Change placeholder color to red if overlapping
             mpos = pygame.mouse.get_pos()
-            overlap = any(math.hypot(mpos[0]-t.x, mpos[1]-t.y) < 60 for t in towers)
+            overlap = any(math.hypot(mpos[0]-t.x, mpos[1]-t.y) < 80 for t in towers)
             
             # Draw the placement range circle
             draw_col = "#ff0000" if overlap else (255, 255, 255)
