@@ -489,25 +489,46 @@ def events(dt):
                             gui = 2
                             placing_tower = True
             
-            elif gui == 2: # Double Tap to Place (Mobile Only)
+            elif gui == 2: # Mobile Placement Logic
+                # Only attempt placement if it's a double tap
                 if curr_time - game.last_tap_time < 0.3:
-                    if len(towers) < game.tower_limit: # Limit Check
-                        if not tower_cancel_rect.collidepoint((tx, ty)):
-                            # Create a variable to see if the spot is valid
+                    if not tower_cancel_rect.collidepoint((tx, ty)):
+                        if len(towers) < game.tower_limit:
+                            # 1. Check Tower-to-Tower Collision
                             can_place = True
                             for t in towers:
-                                # Calculate distance between cursor (mpos) and existing tower
-                                dist = math.hypot(e.pos[0] - t.x, e.pos[1] - t.y)
-                                if dist < 80: # 60 pixels is the "Red Circle" zone
+                                if math.hypot(tx - t.x, ty - t.y) < 80:
                                     can_place = False
                                     break
-                            if can_place and len(towers) < game.tower_limit:
-                                towers.append(Tower(e.pos[0], e.pos[1], phtower.name))
+                            
+                            # 2. Check Road Collision
+                            on_road = False
+                            for i in range(len(game.map) - 1):
+                                p1, p2 = game.map[i], game.map[i+1]
+                                dx, dy = p2[0]-p1[0], p2[1]-p1[1]
+                                if dx == 0 and dy == 0: continue
+                                t_val = ((tx-p1[0])*dx + (ty-p1[1])*dy) / (dx*dx + dy*dy)
+                                t_val = max(0, min(1, t_val))
+                                nearest_x, nearest_y = p1[0]+t_val*dx, p1[1]+t_val*dy
+                                if math.hypot(tx-nearest_x, ty-nearest_y) < 45:
+                                    on_road = True
+                                    break
+
+                            if can_place and not on_road:
+                                towers.append(Tower(tx, ty, phtower.name))
                                 game.dec_money(phtower.cost)
+                                # Only exit placement mode if placement was successful or canceled
+                                phtower = 0
+                                placing_tower = False
+                                gui = 0
+                    else:
+                        # If they hit the cancel button
                         phtower = 0
                         placing_tower = False
                         gui = 0
-                    game.last_tap_time = curr_time
+                
+                # Update the last tap time EVERY time they tap in GUI 2
+                game.last_tap_time = curr_time
 
         elif hasattr(pygame, "FINGERMOTION") and e.type == pygame.FINGERMOTION:
             if gui == 1: # Swipe to Scroll
