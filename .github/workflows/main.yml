@@ -27,7 +27,8 @@ jobs:
       - name: Build and Organize All Games
         run: |
           mkdir -p deploy
-          cp index.html ads.txt privacy.html terms.html about.html contact.html deploy/
+          # Genel dosyaları kopyala
+          cp ads.txt privacy.html terms.html about.html contact.html deploy/ 2>/dev/null || true
           
           for dir in */; do
             dirname=${dir%/}
@@ -39,17 +40,25 @@ jobs:
             if [ -f "$dirname/main.py" ]; then
               echo "Building game in folder: $dirname"
               
+              # 1. Pygbag Build al
               python -m pygbag --build "$dirname/"
               
+              # 2. DOCTYPE FIX: index.html'in en başına <!DOCTYPE html> ekle
+              # Bu komut dosyanın en başına (1i) bu satırı yerleştirir
+              sed -i '1i <!DOCTYPE html>' "$dirname/build/web/index.html"
+              
+              # 3. USERAGENT DATA FIX: Navigator hatasını engellemek için scripti ekle
+              # </head> etiketinden hemen önce yamayı yerleştirir
+              PATCH_SCRIPT='<script>if(!navigator.userAgentData){navigator.userAgentData={mobile:/Android|iPhone|iPad/i.test(navigator.userAgent),platform:navigator.platform};}</script>'
+              sed -i "s|</head>|$PATCH_SCRIPT</head>|" "$dirname/build/web/index.html"
+
+              # 4. Dosyaları Deploy klasörüne taşı
               mkdir -p "deploy/$dirname"
               cp -r "$dirname/build/web/"* "deploy/$dirname/"
               
-              # --- THE FIX STARTS HERE ---
-              # Copy the thumbnail and any other images from the game folder
-              # '|| true' prevents the script from crashing if no images exist
+              # Assetleri kopyala (Gerekliyse)
               cp "$dirname"/*.png "deploy/$dirname/" 2>/dev/null || true
               cp "$dirname"/*.jpg "deploy/$dirname/" 2>/dev/null || true
-              # --- THE FIX ENDS HERE ---
 
               if [ -f "$dirname/${dirname}_play.html" ]; then
                 cp "$dirname/${dirname}_play.html" "deploy/$dirname/"
